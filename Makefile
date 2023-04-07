@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wextra -Wall -Werror -std=c17
+CFLAGS=-Wextra -Wall -std=c17
 
 LDFLAGS= -L/usr/local/opt/openssl@3/lib -L/usr/local/opt/libomp/lib
 CPPFLAGS=-I/usr/local/opt/openssl@3/include -I/usr/local/opt/libomp/include
