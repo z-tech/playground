@@ -62,6 +62,16 @@ std::vector<BIGNUM*> bns_from_char_arr(int src_len, const char src[src_len][400]
   return *bns;
 }
 
+std::vector<BIGNUM*> bns_huge_list(int len) {
+  std::vector<BIGNUM*>* bns = new std::vector<BIGNUM*>(len);
+  BIGNUM *bn = BN_new();
+  for (int i = 0; i < len; ++i) {
+    BN_rand(bn, 1024, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
+    bns->at(i) = BN_dup(bn);
+  }
+  return *bns;
+}
+
 void test_PH_bn_to_prime() {
   // load BN we already know about
   BIGNUM *bn = BN_new();
@@ -131,6 +141,32 @@ void test_PH_bn_arr_to_primes_pl() {
   printf("    time: %f\n", execution_time);
 }
 
+void test_bn_vec_to_primes_large_set() {
+  printf("- Large set: it should process the list");
+  const std::vector<BIGNUM*> bns = bns_huge_list(1000);
+  clock_t start, end;
+  double execution_time;
+  start = clock();
+  const std::vector<BIGNUM*> primes = PrimeHasher::bn_vec_to_primes(bns);
+  end = clock();
+  execution_time = ((double)(end - start))/CLOCKS_PER_SEC;
+  printf(" PASS\n" );
+  printf("    time: %f\n", execution_time);
+}
+
+void test_bn_vec_to_primes_pl_large_set() {
+  printf("- Large set: it should process the list");
+  const std::vector<BIGNUM*> bns = bns_huge_list(1000);
+  clock_t start, end;
+  double execution_time;
+  start = clock();
+  const std::vector<BIGNUM*> primes = PrimeHasher::bn_vec_to_primes_pl(bns);
+  end = clock();
+  execution_time = ((double)(end - start))/CLOCKS_PER_SEC;
+  printf(" PASS\n" );
+  printf("    time: %f\n", execution_time);
+}
+
 int main (int argc, char * argv []) {
   (void) argc;
   (void) argv;
@@ -140,9 +176,11 @@ int main (int argc, char * argv []) {
 
   // PH_bn_arr_to_primes
   // test_PH_bn_arr_to_primes();
+  test_bn_vec_to_primes_large_set();
 
   // PH_bn_arr_to_primes_pl
-  test_PH_bn_arr_to_primes_pl();
+  // test_PH_bn_arr_to_primes_pl();
+  test_bn_vec_to_primes_pl_large_set();
 
   return 0;
 }
