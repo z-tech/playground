@@ -17,7 +17,7 @@ TMPH =  $(SRCH:.h=.h~)
 
 RM=rm -f
 
-all: 
+all:
 	gcc $(CFLAGS) $(SRCS) $(CPPFLAGS) -c
 
 compile-tests:

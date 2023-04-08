@@ -21,19 +21,21 @@ BIGNUM ** PH_bn_arr_to_primes(int src_len, const BIGNUM *const src[]) {
   return primes;
 }
 
-// BIGNUM ** PH_bn_arr_to_primes_pl(int src_len, const BIGNUM *const src[]) {
-//   BIGNUM ** primes = calloc(src_len, sizeof(BIGNUM *));
-//   #pragma omp parallel
-//   {
-//     #pragma omp for
-//     {
-//       for(int i = 0; i < src_len; ++i){
-//         primes[i] = PH_bn_to_prime(src[i]);
-//       }
-//     }
-//   }
-//   return primes;
-// }
+BIGNUM ** PH_bn_arr_to_primes_pl(int src_len, const BIGNUM *const src[]) {
+  BIGNUM ** primes;
+  #pragma omp parallel private(prime) shared(primes)
+  {
+    primes = calloc(src_len, sizeof(BIGNUM *));
+
+    #pragma omp for
+    {
+      for(int i = 0; i < src_len; ++i){
+        primes[i] = PH_bn_to_prime(src[i]);
+      }
+    }
+  }
+  return primes;
+}
 
 // Just some notes:
 //   BIGNUM * src[] is same as BIGNUM ** src (array of pointers to BIGNUM)

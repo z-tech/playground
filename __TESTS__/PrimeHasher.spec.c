@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <omp.h>
+
 #include <time.h>
 #include "../PrimeHasher.h"
 
@@ -57,7 +60,17 @@ BIGNUM ** bns_from_char_arr(int src_len, const char src[src_len][400]) {
   return bns;
 }
 
-void test_PH_bn_to_prime() {
+BIGNUM ** bns_huge_list(int len) {
+  BIGNUM ** bns = calloc(len, sizeof(BIGNUM *));
+  BIGNUM *bn = BN_new();
+  for (int i = 0; i < len; ++i) {
+    BN_rand(bn, 1024, BN_RAND_TOP_ANY, BN_RAND_BOTTOM_ANY);
+    bns[i] = BN_dup(bn);
+  }
+  return bns;
+}
+
+void test_PH_bn_to_prime_correctness() {
   // load BN we already know about
   BIGNUM *bn = BN_new();
   BN_dec2bn(&bn, bns_rand_dec[0]);
@@ -66,12 +79,11 @@ void test_PH_bn_to_prime() {
   BIGNUM *prime = PH_bn_to_prime(bn);
 
   // load what we expect it to be
-  const char bn_prime_expct_dec[] = "77728531348129034983974467072116624635402970881828592987391241438326088241400919233807631936222117822874591962040900395028592224719588739987806722540992579917735365656312235377912029956504172868924068795481811504700758703553469530508476273190236419245066988776481021363203642622172897415912108116908026161633";
   BIGNUM *bn_expct = BN_new();
-  BN_dec2bn(&bn_expct, bn_prime_expct_dec);
+  BN_dec2bn(&bn_expct, primes_expected_dec[0]);
 
   // check that it worked
-  printf("PH_bn_to_prime\n  - it should hash deterministically to a prime");
+  printf("- Correctness: it should hash deterministically to a prime");
   if (!BN_cmp(prime, bn_expct)) {
     printf(" PASS\n");
   } else {
@@ -84,58 +96,125 @@ void test_PH_bn_to_prime() {
   BN_free(bn_expct);
 }
 
-void test_PH_bn_arr_to_primes() {
+void test_PH_bn_arr_to_primes_correctness() {
   BIGNUM ** bns = bns_from_char_arr(20, bns_rand_dec);
   BIGNUM ** expected = bns_from_char_arr(20, primes_expected_dec);
-  printf("PH_bn_arr_to_primes\n  - it should take a list of bns and hash deterministically to primes");
+  printf("- Correctness: it should take a list of bns and hash deterministically to primes");
   clock_t start, end;
   double execution_time;
   start = clock();
   BIGNUM ** primes = PH_bn_arr_to_primes(20, bns);
   end = clock();
-  execution_time = ((double)(end - start))/CLOCKS_PER_SEC; 
+  execution_time = ((double)(end - start))/CLOCKS_PER_SEC;
   for (int i = 0; i < 20; ++i) {
     if (BN_cmp(primes[0], expected[0])) {
       printf(" FAIL\n");
       return;
-    }    
+    }
   }
   printf(" PASS\n" );
   printf("    time: %f\n", execution_time);
 }
 
-/* void test_PH_bn_arr_to_primes_pl() { */
-/*   BIGNUM ** bns = bns_from_char_arr(20, bns_rand_dec); */
-/*   BIGNUM ** expected = bns_from_char_arr(20, primes_expected_dec); */
-/*   printf("PH_bn_arr_to_primes_pl\n  - it should take a list of bns and hash deterministically to primes"); */
-/*   clock_t start, end; */
-/*   double execution_time; */
-/*   start = clock(); */
-/*   BIGNUM ** primes = PH_bn_arr_to_primes_pl(20, bns); */
-/*   end = clock(); */
-/*   execution_time = ((double)(end - start))/CLOCKS_PER_SEC;  */
-/*   for (int i = 0; i < 20; ++i) { */
-/*     if (BN_cmp(primes[0], expected[0])) { */
-/*       printf(" FAIL\n"); */
-/*       return; */
-/*     }     */
-/*   } */
-/*   printf(" PASS\n" ); */
-/*   printf("    time: %f\n", execution_time); */
-/* } */
+void test_PH_bn_arr_to_primes_pl_correctness() {
+  BIGNUM ** bns = bns_from_char_arr(20, bns_rand_dec);
+  BIGNUM ** expected = bns_from_char_arr(20, primes_expected_dec);
+  printf("- Correctness: it should take a list of bns and hash deterministically to primes");
+  clock_t start, end;
+  double execution_time;
+  start = clock();
+  BIGNUM ** primes = PH_bn_arr_to_primes_pl(20, bns);
+  end = clock();
+  execution_time = ((double)(end - start))/CLOCKS_PER_SEC;
+  for (int i = 0; i < 20; ++i) {
+    if (BN_cmp(primes[0], expected[0])) {
+      printf(" FAIL\n");
+      return;
+    }
+  }
+  printf(" PASS\n" );
+  printf("    time: %f\n", execution_time);
+}
 
-int main (int argc, char * argv []) {
-  (void) argc;
-  (void) argv;
+void test_PH_bn_arr_to_primes_large_set() {
+  printf("- Large set: it should process the list");
+  BIGNUM ** bns = bns_huge_list(1000);
+  clock_t start, end;
+  double execution_time;
+  start = clock();
+  BIGNUM ** primes = PH_bn_arr_to_primes(1000, bns);
+  end = clock();
+  execution_time = ((double)(end - start))/CLOCKS_PER_SEC;
+  printf(" PASS\n" );
+  printf("    time: %f\n", execution_time);
+}
 
-  // PH_bn_to_prime
-  test_PH_bn_to_prime();
+void test_PH_bn_arr_to_primes_pl_large_set() {
+  printf("- Large set: it should process the list");
+  BIGNUM ** bns = bns_huge_list(1000);
+  clock_t start, end;
+  double execution_time;
+  start = clock();
+  BIGNUM ** primes = PH_bn_arr_to_primes_pl(1000, bns);
+  end = clock();
+  execution_time = ((double)(end - start))/CLOCKS_PER_SEC;
+  printf(" PASS\n" );
+  printf("    time: %f\n", execution_time);
+}
 
-  // PH_bn_arr_to_primes
-  test_PH_bn_arr_to_primes();
-  
-  // PH_bn_arr_to_primes_pl
-  // test_PH_bn_arr_to_primes_pl();
+// int main (int argc, char * argv []) {
+//   (void) argc;
+//   (void) argv;
+//
+//   // PH_bn_to_prime
+//   printf("PH_bn_to_prime\n");
+//   test_PH_bn_to_prime_correctness();
+//
+//   // PH_bn_arr_to_primes
+//   printf("PH_bn_arr_to_primes\n");
+//   test_PH_bn_arr_to_primes_correctness();
+//   // test_PH_bn_arr_to_primes_large_set();
+//
+//   // PH_bn_arr_to_primes_pl
+//   printf("PH_bn_arr_to_primes_pl\n");
+//   test_PH_bn_arr_to_primes_pl_correctness();
+//   test_PH_bn_arr_to_primes_pl_large_set();
+//
+//   return 1;
+// }
 
-  return 1;
+int main(int argc, char** argv){
+    int partial_Sum, total_Sum;
+
+    int thread_id;
+    int i;
+    #pragma omp parallel private(partial_Sum) shared(total_Sum)
+    {
+
+        thread_id = omp_get_thread_num();
+
+        //create the loop to have each thread print hello.
+        for(i = 0; i < omp_get_max_threads(); i++){
+            printf("Hello from process: %d\n", thread_id);
+        }
+
+        partial_Sum = 0;
+        total_Sum = 0;
+
+        #pragma omp for
+        {
+            for(int i = 1; i <= 1000; i++){
+                partial_Sum += i;
+            }
+        }
+
+        //Create thread safe region.
+        #pragma omp critical
+        {
+                //add each threads partial sum to the total sum
+                total_Sum += partial_Sum;
+        }
+    }
+    printf("Total Sum: %d\n", total_Sum);
+    return 0;
 }
