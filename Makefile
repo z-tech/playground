@@ -1,27 +1,30 @@
-CC=gcc
-CFLAGS=-Wextra -Wall -std=c17
+CC=g++
+CFLAGS=-Wextra -Wall -std=c++17 -pthread -O3
 
-LDFLAGS= -L/usr/local/opt/openssl@3/lib -L/usr/local/opt/libomp/lib
-CPPFLAGS=-I/usr/local/opt/openssl@3/include -I/usr/local/opt/libomp/include
-LINKER=-lcrypto -lomp
+LDFLAGS= -L/usr/local/opt/openssl@3/lib
+CPPFLAGS=-I/usr/local/opt/openssl@3/include
+LINKER=-lcrypto
 
-SRCS=PrimeHasher.c
-SRCH=$(subst .c,.h,$(SRCS))
-OBJS=$(subst .c,.o,$(SRCS))
+SRCS=PrimeHasher.cc
+SRCH=$(subst .cc,.hh,$(SRCS))
+OBJS=$(subst .cc,.o,$(SRCS))
 
-TSTS=./__TESTS__/PrimeHasher.spec.c
+TSTS=./__TESTS__/PrimeHasher.spec.cc
 
-TMPC += $(SRCS:.c=.c~)
-TMPC += $(TSTS:.c=.c~)
-TMPH =  $(SRCH:.h=.h~)
+TMPC += $(SRCS:.cc=.cc~)
+TMPC += $(TSTS:.spec.cc=.spec.cc~)
+TMPH =  $(SRCH:.hh=.hh~)
 
 RM=rm -f
 
-all: 
-	gcc $(CFLAGS) $(SRCS) $(CPPFLAGS) -c
+all:
+	$(CC) $(CFLAGS) $(SRCS) $(CPPFLAGS) -c
 
 compile-tests:
-	gcc $(CFLAGS) $(OBJS) $(TSTS) $(CPPFLAGS) $(LDFLAGS) $(LINKER)
+	$(CC) $(CFLAGS) $(OBJS) $(TSTS) $(CPPFLAGS) $(LDFLAGS) $(LINKER)
+
+test:
+	make clean && make && make compile-tests && ./a.out
 
 clean:
 	$(RM) $(OBJS) $(TMPC) $(TMPH) Makefile~ ./a.out
