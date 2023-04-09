@@ -1,9 +1,9 @@
 CC=g++
 CFLAGS=-Wextra -Wall -std=c++17 -pthread -O3
 
-LDFLAGS= -L/usr/local/opt/openssl@3/lib
-CPPFLAGS=-I/usr/local/opt/openssl@3/include
-LINKER=-lcrypto
+LDFLAGS= -L/usr/local/opt/openssl@3/lib -L/usr/local/opt/libomp/lib
+CPPFLAGS=-I/usr/local/opt/openssl@3/include -I/usr/local/opt/libomp/include -Xclang -fopenmp
+LINKER=-lcrypto -lomp
 
 SRCS=PrimeHasher.cc
 SRCH=$(subst .cc,.hh,$(SRCS))
@@ -24,7 +24,7 @@ compile-tests:
 	$(CC) $(CFLAGS) $(OBJS) $(TSTS) $(CPPFLAGS) $(LDFLAGS) $(LINKER)
 
 test:
-	make clean && make && make compile-tests && ./a.out
+	make clean && make && make compile-tests && time ./a.out
 
 clean:
 	$(RM) $(OBJS) $(TMPC) $(TMPH) Makefile~ ./a.out

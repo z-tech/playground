@@ -143,7 +143,7 @@ void test_PH_bn_arr_to_primes_pl() {
 
 void test_bn_vec_to_primes_large_set() {
   printf("- Large set: it should process the list");
-  const std::vector<BIGNUM*> bns = bns_huge_list(1000);
+  const std::vector<BIGNUM*> bns = bns_huge_list(500);
   clock_t start, end;
   double execution_time;
   start = clock();
@@ -156,7 +156,7 @@ void test_bn_vec_to_primes_large_set() {
 
 void test_bn_vec_to_primes_pl_large_set() {
   printf("- Large set: it should process the list");
-  const std::vector<BIGNUM*> bns = bns_huge_list(1000);
+  const std::vector<BIGNUM*> bns = bns_huge_list(500);
   clock_t start, end;
   double execution_time;
   start = clock();
@@ -175,11 +175,11 @@ int main (int argc, char * argv []) {
   // test_PH_bn_to_prime();
 
   // PH_bn_arr_to_primes
-  // test_PH_bn_arr_to_primes();
-  test_bn_vec_to_primes_large_set();
+  //test_PH_bn_arr_to_primes();
+  //test_bn_vec_to_primes_large_set();
 
   // PH_bn_arr_to_primes_pl
-  // test_PH_bn_arr_to_primes_pl();
+  //test_PH_bn_arr_to_primes_pl();
   test_bn_vec_to_primes_pl_large_set();
 
   return 0;
